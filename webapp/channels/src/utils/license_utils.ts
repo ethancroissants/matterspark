@@ -12,17 +12,7 @@ const LICENSE_EXPIRY_NOTIFICATION = 1000 * 60 * 60 * 24 * 60; // 60 days
 const LICENSE_GRACE_PERIOD = 1000 * 60 * 60 * 24 * 10; // 10 days
 
 export function isLicenseExpiring(license: ClientLicense) {
-    // Skip license expiration checks for cloud licenses
-    if (license.IsLicensed !== 'true' || isCloudLicense(license)) {
-        return false;
-    }
-
-    if (license.IsTrial === 'true') {
-        return true;
-    }
-
-    const timeDiff = parseInt(license.ExpiresAt, 10) - Date.now();
-    return timeDiff <= LICENSE_EXPIRY_NOTIFICATION;
+    return false;
 }
 
 export function daysToLicenseExpire(license: ClientLicense) {
@@ -35,41 +25,15 @@ export function daysToLicenseExpire(license: ClientLicense) {
 }
 
 export function isLicenseExpired(license: ClientLicense) {
-    if (license.IsLicensed !== 'true' || isCloudLicense(license)) {
-        return false;
-    }
-
-    const endDate = new Date(parseInt(license?.ExpiresAt, 10));
-    const timeDiff = moment(endDate).startOf('day').diff(moment().startOf('day'), 'days');
-    return timeDiff < 0;
+    return false;
 }
 
 export function isLicensePastGracePeriod(license: ClientLicense) {
-    if (license.IsLicensed !== 'true' || isCloudLicense(license)) {
-        return false;
-    }
-
-    const timeDiff = Date.now() - parseInt(license.ExpiresAt, 10);
-    return timeDiff > LICENSE_GRACE_PERIOD;
+    return false;
 }
 
 export function isTrialLicense(license: ClientLicense) {
-    if (license.IsLicensed !== 'true') {
-        return false;
-    }
-
-    if (license.IsTrial === 'true') {
-        return true;
-    }
-
-    // Currently all trial licenses are issued with a 30 day, 8 hours duration.
-    // We're using this logic to detect a trial license until we add the right field in the license itself.
-    const timeDiff = parseInt(license.ExpiresAt, 10) - parseInt(license.StartsAt, 10);
-
-    // 30 days + 8 hours
-    const trialLicenseDuration = (1000 * 60 * 60 * 24 * 30) + (1000 * 60 * 60 * 8);
-
-    return timeDiff === trialLicenseDuration;
+    return false;
 }
 
 export function isCloudLicense(license: ClientLicense) {
@@ -85,15 +49,7 @@ export function getIsGovSku(license: ClientLicense) {
 }
 
 export const isEnterpriseLicense = (license?: ClientLicense) => {
-    switch (license?.SkuShortName) {
-    case LicenseSkus.Enterprise:
-    case LicenseSkus.E20:
-    case LicenseSkus.EnterpriseAdvanced:
-    case LicenseSkus.Entry:
-        return true;
-    }
-
-    return false;
+    return true;
 };
 
 export const isNonEnterpriseLicense = (license?: ClientLicense) => !isEnterpriseLicense(license);
@@ -104,36 +60,18 @@ export const licenseSKUWithFirstLetterCapitalized = (license: ClientLicense) => 
 };
 
 export function isEnterpriseOrCloudOrSKUStarterFree(license: ClientLicense, subscriptionProduct: Product | undefined, isEnterpriseReady: boolean) {
-    const isCloud = license?.Cloud === 'true';
-    const isCloudStarterFree = isCloud && subscriptionProduct?.sku === CloudProducts.STARTER;
-
-    const isSelfHostedStarter = isEnterpriseReady && (license.IsLicensed === 'false');
-
-    const isStarterSKULicense = license.IsLicensed === 'true' && license.SelfHostedProducts === SelfHostedProducts.STARTER;
-
-    return isCloudStarterFree || isSelfHostedStarter || isStarterSKULicense;
+    // Matterspark: never show upgrade prompts
+    return false;
 }
 
 export function isMinimumProfessionalLicense(license: ClientLicense): boolean {
-    if (!license) {
-        return false;
-    }
-
-    return getLicenseTier(license.SkuShortName) >= getLicenseTier(LicenseSkus.Professional);
+    return true;
 }
 
 export function isMinimumEnterpriseLicense(license: ClientLicense): boolean {
-    if (!license) {
-        return false;
-    }
-
-    return getLicenseTier(license.SkuShortName) >= getLicenseTier(LicenseSkus.Enterprise);
+    return true;
 }
 
 export function isMinimumEnterpriseAdvancedLicense(license?: ClientLicense): boolean {
-    if (!license) {
-        return false;
-    }
-
-    return getLicenseTier(license.SkuShortName) >= getLicenseTier(LicenseSkus.EnterpriseAdvanced);
+    return true;
 }

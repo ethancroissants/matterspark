@@ -87,7 +87,7 @@ export default function AboutBuildModal(props: Props) {
     let title = (
         <FormattedMessage
             id='about.teamEditiont0'
-            defaultMessage='Team Edition'
+            defaultMessage='Matterspark'
         />
     );
 

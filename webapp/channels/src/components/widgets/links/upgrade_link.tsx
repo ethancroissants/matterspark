@@ -2,41 +2,16 @@
 // See LICENSE.txt for license information.
 
 import React from 'react';
-import {FormattedMessage} from 'react-intl';
-
-import './link.scss';
-import useOpenSalesLink from 'components/common/hooks/useOpenSalesLink';
 
 export interface UpgradeLinkProps {
     buttonText?: string;
-    styleButton?: boolean; // show as a blue primary button
-    styleLink?: boolean; // show as a anchor link
+    styleButton?: boolean;
+    styleLink?: boolean;
 }
 
-const UpgradeLink = (props: UpgradeLinkProps) => {
-    const styleButton = props.styleButton ? ' style-button' : '';
-    const styleLink = props.styleLink ? ' style-link' : '';
-
-    const [openSalesLink] = useOpenSalesLink();
-
-    const handleLinkClick = async (e: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
-        e.preventDefault();
-        openSalesLink();
-    };
-    const buttonText = (
-        <FormattedMessage
-            id='upgradeLink.warn.upgrade_now'
-            defaultMessage='Upgrade now'
-        />
-    );
-    return (
-        <button
-            className={`upgradeLink${styleButton}${styleLink}`}
-            onClick={(e) => handleLinkClick(e)}
-        >
-            {props.buttonText ? props.buttonText : buttonText}
-        </button>
-    );
+// Matterspark: upgrade link removed
+const UpgradeLink = (_props: UpgradeLinkProps) => {
+    return null;
 };
 
 export default UpgradeLink;

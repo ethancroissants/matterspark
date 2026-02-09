@@ -508,3 +508,58 @@ func MinimumEnterpriseLicense(license *License) bool {
 func MinimumEnterpriseAdvancedLicense(license *License) bool {
 	return license != nil && LicenseToLicenseTier[license.SkuShortName] >= EnterpriseAdvancedTier
 }
+
+// NewMattersparkLicense generates a full-featured license for the Matterspark fork.
+func NewMattersparkLicense() *License {
+	users := 999999
+	t := true
+	license := &License{
+		Id:           "matterspark-unlimited",
+		IssuedAt:     GetMillis(),
+		StartsAt:     GetMillis(),
+		ExpiresAt:    GetMillisForTime(time.Now().Add(100 * 365 * 24 * time.Hour)), // 100 years
+		SkuName:      "Matterspark Enterprise",
+		SkuShortName: LicenseShortSkuEnterpriseAdvanced,
+		Customer: &Customer{
+			Id:      "matterspark",
+			Name:    "Matterspark",
+			Email:   "admin@matterspark.local",
+			Company: "Matterspark",
+		},
+		Features: &Features{
+			Users:                     &users,
+			LDAP:                      &t,
+			LDAPGroups:                &t,
+			MFA:                       &t,
+			GoogleOAuth:               &t,
+			Office365OAuth:            &t,
+			OpenId:                    &t,
+			Compliance:                &t,
+			Cluster:                   &t,
+			Metrics:                   &t,
+			MHPNS:                     &t,
+			SAML:                      &t,
+			Elasticsearch:             &t,
+			Announcement:              &t,
+			ThemeManagement:           &t,
+			EmailNotificationContents: &t,
+			DataRetention:             &t,
+			MessageExport:             &t,
+			CustomPermissionsSchemes:  &t,
+			CustomTermsOfService:      &t,
+			GuestAccounts:             &t,
+			GuestAccountsPermissions:  &t,
+			IDLoadedPushNotifications: &t,
+			LockTeammateNameDisplay:   &t,
+			EnterprisePlugins:         &t,
+			AdvancedLogging:           &t,
+			Cloud:                     NewPointer(false),
+			SharedChannels:            &t,
+			RemoteClusterService:      &t,
+			OutgoingOAuthConnections:  &t,
+			AutoTranslation:           &t,
+			FutureFeatures:            &t,
+		},
+	}
+	return license
+}

@@ -42,7 +42,7 @@ jobs:
               -X 'github.com/mattermost/mattermost/server/public/model.BuildNumber=${{ github.run_number }}' \
               -X 'github.com/mattermost/mattermost/server/public/model.BuildDate=$(date -u)' \
               -X 'github.com/mattermost/mattermost/server/public/model.BuildHash=${{ github.sha }}' \
-              -X 'github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=false'" \
+              -X 'github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=true'" \
             ./...
 
       - name: Assemble dist
