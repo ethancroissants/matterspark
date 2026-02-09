@@ -1,0 +1,77 @@
+name: Build & Push to GHCR
+
+on:
+  push:
+    branches: [master]
+  workflow_dispatch:
+
+env:
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ethancroissants/matterspark
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-go@v5
+        with:
+          go-version-file: server/go.mod
+          cache-dependency-path: server/go.sum
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: webapp/package-lock.json
+
+      - name: Build webapp
+        working-directory: webapp
+        run: npm ci && npm run build
+
+      - name: Build server
+        working-directory: server
+        run: |
+          go work init && go work use . && go work use ./public
+          env GOOS=linux GOARCH=amd64 go build -o bin/ -trimpath -tags production \
+            -ldflags " \
+              -X 'github.com/mattermost/mattermost/server/public/model.BuildNumber=${{ github.run_number }}' \
+              -X 'github.com/mattermost/mattermost/server/public/model.BuildDate=$(date -u)' \
+              -X 'github.com/mattermost/mattermost/server/public/model.BuildHash=${{ github.sha }}' \
+              -X 'github.com/mattermost/mattermost/server/public/model.BuildEnterpriseReady=false'" \
+            ./...
+
+      - name: Assemble dist
+        run: |
+          mkdir -p dist/mattermost/{bin,config,logs,data,plugins,client/plugins,fonts,templates,i18n}
+          cp server/bin/mattermost server/bin/mmctl dist/mattermost/bin/
+          cp -r webapp/channels/dist/* dist/mattermost/client/
+          cp -r server/fonts dist/mattermost/
+          cp -r server/i18n dist/mattermost/
+          cp -r server/templates dist/mattermost/
+          rm -rf dist/mattermost/templates/*.mjml dist/mattermost/templates/partials/
+          cp NOTICE.txt README.md dist/mattermost/
+
+      - name: Log in to GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Build and push
+        uses: docker/build-push-action@v6
+        with:
+          context: dist
+          file: Dockerfile
+          push: true
+          tags: |
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:latest
+            ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}
