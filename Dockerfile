@@ -1,7 +1,7 @@
 FROM ubuntu:noble
 
 RUN apt-get update && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
-    ca-certificates media-types mailcap tzdata \
+    ca-certificates curl media-types mailcap tzdata \
     && rm -rf /var/lib/apt/lists/*
 
 ARG PUID=2000
@@ -20,8 +20,8 @@ ENV MM_INSTALL_TYPE=docker
 
 USER mattermost
 
-HEALTHCHECK --interval=30s --timeout=10s \
-    CMD ["/mattermost/bin/mmctl", "system", "status", "--local"]
+HEALTHCHECK --interval=30s --timeout=10s --start-period=60s \
+    CMD curl -sSf http://localhost:8065/api/v4/system/ping || exit 1
 
 WORKDIR /mattermost
 CMD ["/mattermost/bin/mattermost"]
