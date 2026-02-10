@@ -68,6 +68,12 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
 
         this.groups = [
             {
+                id: 'profile',
+                permissions: [
+                    Permissions.EDIT_PROFILE,
+                ],
+            },
+            {
                 id: 'teams',
                 permissions: [
                     {
@@ -207,13 +213,13 @@ export default class PermissionsTree extends React.PureComponent<Props, State> {
     updateGroups = () => {
         const {config, scope, license, role} = this.props;
 
-        const teamsGroup = this.groups[0];
-        const publicChannelsGroup = this.groups[1];
-        const privateChannelsGroup = this.groups[2];
-        const postsGroup = this.groups[7];
-        const integrationsGroup = this.groups[8];
-        const sharedChannelsGroup = this.groups[9];
-        const customGroupsGroup = this.groups[10];
+        const teamsGroup = this.groups[1];
+        const publicChannelsGroup = this.groups[2];
+        const privateChannelsGroup = this.groups[3];
+        const postsGroup = this.groups[8];
+        const integrationsGroup = this.groups[9];
+        const sharedChannelsGroup = this.groups[10];
+        const customGroupsGroup = this.groups[11];
 
         if (config.EnableIncomingWebhooks === 'true') {
             const incomingWebhookGroup = {

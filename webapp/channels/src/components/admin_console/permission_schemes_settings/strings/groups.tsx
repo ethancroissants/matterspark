@@ -95,6 +95,16 @@ export const groupRolesStrings: Record<string, Record<string, MessageDescriptor>
             defaultMessage: 'Create teams and manage members.',
         },
     }),
+    profile: defineMessages({
+        name: {
+            id: 'admin.permissions.group.profile.name',
+            defaultMessage: 'User Profile',
+        },
+        description: {
+            id: 'admin.permissions.group.profile.description',
+            defaultMessage: 'Control whether members can edit their own profile information.',
+        },
+    }),
     edit_posts: defineMessages({
         name: {
             id: 'admin.permissions.group.edit_posts.name',

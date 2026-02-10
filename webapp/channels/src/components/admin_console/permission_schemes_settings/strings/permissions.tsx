@@ -155,6 +155,16 @@ export const permissionRolesStrings: Record<string, Record<string, MessageDescri
             defaultMessage: 'Edit other users',
         },
     }),
+    edit_profile: defineMessages({
+        name: {
+            id: 'admin.permissions.permission.edit_profile.name',
+            defaultMessage: 'Make Edits To Profile',
+        },
+        description: {
+            id: 'admin.permissions.permission.edit_profile.description',
+            defaultMessage: 'Allow users to edit their own name, email, profile picture and other profile fields.',
+        },
+    }),
     edit_post: defineMessages({
         name: {
             id: 'admin.permissions.permission.edit_post.name',

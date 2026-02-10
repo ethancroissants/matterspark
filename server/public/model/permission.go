@@ -57,6 +57,7 @@ var PermissionJoinPublicChannels *Permission
 var PermissionDeletePublicChannel *Permission
 var PermissionDeletePrivateChannel *Permission
 var PermissionEditOtherUsers *Permission
+var PermissionEditProfile *Permission
 var PermissionReadChannel *Permission
 var PermissionReadChannelContent *Permission
 var PermissionReadPublicChannelGroups *Permission
@@ -610,6 +611,12 @@ func initializePermissions() {
 		"edit_other_users",
 		"authentication.permissions.edit_other_users.name",
 		"authentication.permissions.edit_other_users.description",
+		PermissionScopeSystem,
+	}
+	PermissionEditProfile = &Permission{
+		"edit_profile",
+		"authentication.permissions.edit_profile.name",
+		"authentication.permissions.edit_profile.description",
 		PermissionScopeSystem,
 	}
 	PermissionReadChannel = &Permission{
@@ -2457,6 +2464,7 @@ func initializePermissions() {
 		PermissionListPrivateTeams,
 		PermissionJoinPrivateTeams,
 		PermissionEditOtherUsers,
+		PermissionEditProfile,
 		PermissionReadOtherUsersTeams,
 		PermissionGetPublicLink,
 		PermissionManageSystemWideOAuth,

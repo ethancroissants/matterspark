@@ -38,6 +38,7 @@ const values = {
     MANAGE_CHANNEL_ACCESS_RULES: 'manage_channel_access_rules',
     DELETE_PRIVATE_CHANNEL: 'delete_private_channel',
     EDIT_OTHER_USERS: 'edit_other_users',
+    EDIT_PROFILE: 'edit_profile',
     READ_CHANNEL: 'read_channel',
     READ_CHANNEL_CONTENT: 'read_channel_content',
     READ_PUBLIC_CHANNEL: 'read_public_channel',

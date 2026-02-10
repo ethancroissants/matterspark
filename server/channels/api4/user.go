@@ -545,6 +545,14 @@ func setProfileImage(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// If the user is editing their own profile, check for edit_profile permission
+	if c.AppContext.Session().UserId == c.Params.UserId {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionEditProfile) {
+			c.SetPermissionError(model.PermissionEditProfile)
+			return
+		}
+	}
+
 	if *c.App.Config().FileSettings.DriverName == "" {
 		c.Err = model.NewAppError("uploadProfileImage", "api.user.upload_profile_user.storage.app_error", nil, "", http.StatusNotImplemented)
 		return
@@ -614,6 +622,14 @@ func setDefaultProfileImage(c *Context, w http.ResponseWriter, r *http.Request) 
 	if !c.App.SessionHasPermissionToUserOrBot(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
+	}
+
+	// If the user is editing their own profile, check for edit_profile permission
+	if c.AppContext.Session().UserId == c.Params.UserId {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionEditProfile) {
+			c.SetPermissionError(model.PermissionEditProfile)
+			return
+		}
 	}
 
 	if *c.App.Config().FileSettings.DriverName == "" {
@@ -1366,6 +1382,14 @@ func updateUser(c *Context, w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
+	// If the user is editing their own profile, check for edit_profile permission
+	if c.AppContext.Session().UserId == user.Id {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionEditProfile) {
+			c.SetPermissionError(model.PermissionEditProfile)
+			return
+		}
+	}
+
 	ouser, err := c.App.GetUser(user.Id)
 	if err != nil {
 		c.Err = err
@@ -1441,6 +1465,14 @@ func patchUser(c *Context, w http.ResponseWriter, r *http.Request) {
 	if !c.App.SessionHasPermissionToUserOrBot(c.AppContext, *c.AppContext.Session(), c.Params.UserId) {
 		c.SetPermissionError(model.PermissionEditOtherUsers)
 		return
+	}
+
+	// If the user is editing their own profile, check for edit_profile permission
+	if c.AppContext.Session().UserId == c.Params.UserId {
+		if !c.App.SessionHasPermissionTo(*c.AppContext.Session(), model.PermissionEditProfile) {
+			c.SetPermissionError(model.PermissionEditProfile)
+			return
+		}
 	}
 
 	ouser, err := c.App.GetUser(c.Params.UserId)
