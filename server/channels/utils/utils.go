@@ -195,6 +195,11 @@ func ValidateWebAuthRedirectUrl(config *model.Config, redirectURL string) error 
 		return errors.Wrap(err, "failed to parse redirect URL")
 	}
 
+	// Relative URLs (no scheme/host) are always valid — they stay on the same origin.
+	if u.Scheme == "" && u.Host == "" {
+		return nil
+	}
+
 	if config.ServiceSettings.SiteURL == nil {
 		return errors.New("SiteURL is not configured")
 	}
