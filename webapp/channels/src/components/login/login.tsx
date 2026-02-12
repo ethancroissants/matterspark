@@ -217,7 +217,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
             externalLoginOptions.push({
                 id: 'oauth2',
                 url,
-                icon: <LockIcon/>,
+                icon: <></>,
                 label: OAuth2ButtonText || formatMessage({id: 'login.oauth2', defaultMessage: 'OAuth 2.0'}),
                 style: oauth2Style,
                 onClick: handleExternalAuth(url, 'oauth2'),

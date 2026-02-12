@@ -465,6 +465,13 @@ func (a *App) CreateOAuthUser(rctx request.CTX, service string, userData io.Read
 
 	userByEmail, _ := a.ch.srv.userService.GetUserByEmail(user.Email)
 	if userByEmail != nil {
+		// For generic OAuth2, automatically link existing accounts (email or other auth) by updating auth data
+		if service == model.ServiceOAuth2 {
+			if _, err := a.Srv().Store().User().UpdateAuthData(userByEmail.Id, user.AuthService, user.AuthData, "", false); err != nil {
+				rctx.Logger().Warn("Error attempting to update user AuthData for OAuth2 linking", mlog.Err(err))
+			}
+			return userByEmail, nil
+		}
 		if userByEmail.AuthService == "" {
 			return nil, model.NewAppError("CreateOAuthUser", "api.user.create_oauth_user.already_attached.app_error", map[string]any{"Service": service, "Auth": model.UserAuthServiceEmail}, "email="+user.Email, http.StatusBadRequest)
 		}
