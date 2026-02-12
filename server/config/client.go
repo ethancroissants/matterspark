@@ -428,6 +428,7 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["OAuth2ButtonColor"] = *c.OAuth2Settings.ButtonColor
 	props["OAuth2ButtonText"] = *c.OAuth2Settings.ButtonText
 
+	if license != nil {
 		if model.MinimumEnterpriseLicense(license) {
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)
 			props["MobilePreventScreenCapture"] = strconv.FormatBool(*c.NativeAppSettings.MobilePreventScreenCapture)
