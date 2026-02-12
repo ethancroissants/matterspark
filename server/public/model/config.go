@@ -120,7 +120,7 @@ const (
 	ServiceSettingsDefaultGiphySdkKeyTest        = "s0glxvzVg9azvPipKxcPLpXV0q1x1fVP"
 	ServiceSettingsDefaultDeveloperFlags         = ""
 	ServiceSettingsDefaultUniqueReactionsPerPost = 50
-	ServiceSettingsDefaultMaxURLLength           = 2048
+	ServiceSettingsDefaultMaxURLLength           = 8192
 	ServiceSettingsMaxUniqueReactionsPerPost     = 500
 
 	TeamSettingsDefaultSiteName              = "Mattermost"

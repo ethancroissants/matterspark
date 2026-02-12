@@ -956,6 +956,7 @@ func (a *App) GetAuthorizationCode(rctx request.CTX, w http.ResponseWriter, r *h
 		Expires:  expiresAt,
 		HttpOnly: true,
 		Secure:   secure,
+		SameSite: http.SameSiteLaxMode,
 	}
 
 	http.SetCookie(w, oauthCookie)
