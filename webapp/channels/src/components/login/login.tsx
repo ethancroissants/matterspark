@@ -88,6 +88,7 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         EnableSignUpWithOffice365,
         EnableSignUpWithGoogle,
         EnableSignUpWithOpenId,
+        EnableSignUpWithOAuth2,
         EnableOpenServer,
         EnableUserCreation,
         LdapLoginFieldName,
@@ -95,6 +96,8 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
         GitLabButtonColor,
         OpenIdButtonText,
         OpenIdButtonColor,
+        OAuth2ButtonText,
+        OAuth2ButtonColor,
         SamlLoginButtonText,
         EnableCustomBrand,
         CustomBrandText,
@@ -140,15 +143,16 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
     const enableSignUpWithGoogle = EnableSignUpWithGoogle === 'true';
     const enableSignUpWithOffice365 = EnableSignUpWithOffice365 === 'true';
     const enableSignUpWithOpenId = EnableSignUpWithOpenId === 'true';
+    const enableSignUpWithOAuth2 = EnableSignUpWithOAuth2 === 'true';
     const isLicensed = IsLicensed === 'true';
     const ldapEnabled = isLicensed && enableLdap;
     const enableSignUpWithSaml = isLicensed && enableSaml;
     const siteName = SiteName ?? '';
 
     const enableBaseLogin = enableSignInWithEmail || enableSignInWithUsername || ldapEnabled;
-    const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableSignUpWithSaml;
+    const enableExternalSignup = enableSignUpWithGitLab || enableSignUpWithOffice365 || enableSignUpWithGoogle || enableSignUpWithOpenId || enableSignUpWithOAuth2 || enableSignUpWithSaml;
     const showSignup = enableOpenServer && (enableExternalSignup || enableSignUpWithEmail || enableLdap);
-    const onlyLdapEnabled = enableLdap && !(enableSaml || enableSignInWithEmail || enableSignInWithUsername || enableSignUpWithEmail || enableSignUpWithGitLab || enableSignUpWithGoogle || enableSignUpWithOffice365 || enableSignUpWithOpenId);
+    const onlyLdapEnabled = enableLdap && !(enableSaml || enableSignInWithEmail || enableSignInWithUsername || enableSignUpWithEmail || enableSignUpWithGitLab || enableSignUpWithGoogle || enableSignUpWithOffice365 || enableSignUpWithOpenId || enableSignUpWithOAuth2);
 
     const [desktopLoginLink, setDesktopLoginLink] = useState('');
 
@@ -202,6 +206,21 @@ const Login = ({onCustomizeHeader}: LoginProps) => {
                 label: OpenIdButtonText || formatMessage({id: 'login.openid', defaultMessage: 'Open ID'}),
                 style: {color: OpenIdButtonColor, borderColor: OpenIdButtonColor},
                 onClick: handleExternalAuth(url, 'openid'),
+            });
+        }
+
+        if (enableSignUpWithOAuth2) {
+            const url = `${Client4.getOAuthRoute()}/oauth2/login${search}`;
+            const oauth2Style: React.CSSProperties = OAuth2ButtonColor
+                ? {backgroundColor: OAuth2ButtonColor, borderColor: OAuth2ButtonColor, color: '#ffffff'}
+                : {};
+            externalLoginOptions.push({
+                id: 'oauth2',
+                url,
+                icon: <LockIcon/>,
+                label: OAuth2ButtonText || formatMessage({id: 'login.oauth2', defaultMessage: 'OAuth 2.0'}),
+                style: oauth2Style,
+                onClick: handleExternalAuth(url, 'oauth2'),
             });
         }
 

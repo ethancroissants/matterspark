@@ -359,6 +359,9 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 	props["EnableSignUpWithOpenId"] = "false"
 	props["OpenIdButtonText"] = ""
 	props["OpenIdButtonColor"] = ""
+	props["EnableSignUpWithOAuth2"] = "false"
+	props["OAuth2ButtonText"] = ""
+	props["OAuth2ButtonColor"] = ""
 	props["CWSURL"] = ""
 	props["EnableCustomBrand"] = strconv.FormatBool(*c.TeamSettings.EnableCustomBrand)
 	props["CustomBrandText"] = *c.TeamSettings.CustomBrandText
@@ -418,6 +421,12 @@ func GenerateLimitedClientConfig(c *model.Config, telemetryID string, license *m
 			props["GitLabButtonColor"] = *c.GitLabSettings.ButtonColor
 			props["GitLabButtonText"] = *c.GitLabSettings.ButtonText
 		}
+	}
+
+	// OAuth2 is always available (not gated behind a specific license feature)
+	props["EnableSignUpWithOAuth2"] = strconv.FormatBool(*c.OAuth2Settings.Enable)
+	props["OAuth2ButtonColor"] = *c.OAuth2Settings.ButtonColor
+	props["OAuth2ButtonText"] = *c.OAuth2Settings.ButtonText
 
 		if model.MinimumEnterpriseLicense(license) {
 			props["MobileEnableBiometrics"] = strconv.FormatBool(*c.NativeAppSettings.MobileEnableBiometrics)

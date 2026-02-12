@@ -52,6 +52,7 @@ const (
 	ServiceGoogle    = "google"
 	ServiceOffice365 = "office365"
 	ServiceOpenid    = "openid"
+	ServiceOAuth2    = "oauth2"
 
 	GenericNoChannelNotification = "generic_no_channel"
 	GenericNotification          = "generic"
@@ -275,6 +276,8 @@ const (
 	CloudSettingsDefaultCwsAPIURLTest = "https://api.internal.test.cloud.mattermost.com"
 
 	OpenidSettingsDefaultScope = "profile openid email"
+
+	OAuth2SettingsDefaultScope = ""
 
 	LocalModeSocketPath = "/var/tmp/mattermost_local.socket"
 
@@ -3962,6 +3965,7 @@ type Config struct {
 	GoogleSettings              SSOSettings
 	Office365Settings           Office365Settings
 	OpenIdSettings              SSOSettings
+	OAuth2Settings              SSOSettings
 	LdapSettings                LdapSettings
 	ComplianceSettings          ComplianceSettings
 	LocalizationSettings        LocalizationSettings
@@ -4032,6 +4036,8 @@ func (o *Config) GetSSOService(service string) *SSOSettings {
 		return o.Office365Settings.SSOSettings()
 	case ServiceOpenid:
 		return &o.OpenIdSettings
+	case ServiceOAuth2:
+		return &o.OAuth2Settings
 	}
 
 	return nil
@@ -4071,6 +4077,7 @@ func (o *Config) SetDefaults() {
 	o.GitLabSettings.setDefaults("", "", "", "", "")
 	o.GoogleSettings.setDefaults(GoogleSettingsDefaultScope, GoogleSettingsDefaultAuthEndpoint, GoogleSettingsDefaultTokenEndpoint, GoogleSettingsDefaultUserAPIEndpoint, "")
 	o.OpenIdSettings.setDefaults(OpenidSettingsDefaultScope, "", "", "", "#145DBF")
+	o.OAuth2Settings.setDefaults(OAuth2SettingsDefaultScope, "", "", "", "#2389D7")
 	o.ServiceSettings.SetDefaults(isUpdate)
 	o.PasswordSettings.SetDefaults()
 	o.TeamSettings.SetDefaults()

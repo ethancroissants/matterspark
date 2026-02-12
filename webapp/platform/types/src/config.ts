@@ -106,6 +106,7 @@ export type ClientConfig = {
     EnableSignUpWithGoogle: string;
     EnableSignUpWithOffice365: string;
     EnableSignUpWithOpenId: string;
+    EnableSignUpWithOAuth2: string;
     EnableSVGs: string;
     EnableTesting: string;
     EnableThemeSelection: string;
@@ -165,6 +166,8 @@ export type ClientConfig = {
     GitLabButtonColor: string;
     OpenIdButtonText: string;
     OpenIdButtonColor: string;
+    OAuth2ButtonText: string;
+    OAuth2ButtonColor: string;
     PasswordEnableForgotLink: string;
     PasswordMinimumLength: string;
     PasswordRequireLowercase: string;
@@ -1071,6 +1074,7 @@ export type AdminConfig = {
     GoogleSettings: SSOSettings;
     Office365Settings: Office365Settings;
     OpenIdSettings: SSOSettings;
+    OAuth2Settings: SSOSettings;
     LdapSettings: LdapSettings;
     ComplianceSettings: ComplianceSettings;
     LocalizationSettings: LocalizationSettings;

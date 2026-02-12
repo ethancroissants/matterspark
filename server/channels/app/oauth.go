@@ -729,7 +729,7 @@ func (a *App) getSSOProvider(service string) (einterfaces.OAuthProvider, *model.
 		return nil, model.NewAppError("getSSOProvider", "api.user.authorize_oauth_user.unsupported.app_error", nil, "service="+service, http.StatusNotImplemented)
 	}
 	providerType := service
-	if strings.Contains(*sso.Scope, OpenIDScope) {
+	if service != model.ServiceOAuth2 && strings.Contains(*sso.Scope, OpenIDScope) {
 		providerType = model.ServiceOpenid
 	}
 	provider := einterfaces.GetOAuthProvider(providerType)
