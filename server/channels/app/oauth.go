@@ -778,6 +778,11 @@ func (a *App) LoginByOAuth(rctx request.CTX, service string, userData io.Reader,
 			return nil, model.NewAppError("loginByOAuth", "api.user.login_by_oauth.bot_login_forbidden.app_error", nil, "", http.StatusForbidden)
 		}
 
+		// Block deactivated users from logging in via OAuth
+		if user.DeleteAt != 0 {
+			return nil, model.NewAppError("loginByOAuth", "api.user.login_by_oauth.account_deactivated.app_error", map[string]any{"Service": service}, "user_id="+user.Id, http.StatusForbidden)
+		}
+
 		if err = a.UpdateOAuthUserAttrs(rctx, bytes.NewReader(buf.Bytes()), user, provider, service, tokenUser); err != nil {
 			return nil, err
 		}

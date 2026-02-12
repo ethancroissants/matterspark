@@ -2483,11 +2483,11 @@ func (a *App) UpdateOAuthUserAttrs(rctx request.CTX, userData io.Reader, user *m
 		}
 	}
 
-	if user.DeleteAt > 0 {
-		// Make sure they are not disabled
-		user.DeleteAt = 0
-		userAttrsChanged = true
-	}
+	// Don't auto-reactivate deactivated users via OAuth login
+	// if user.DeleteAt > 0 {
+	// 	user.DeleteAt = 0
+	// 	userAttrsChanged = true
+	// }
 
 	if userAttrsChanged {
 		users, err := a.Srv().Store().User().Update(rctx, user, true)
