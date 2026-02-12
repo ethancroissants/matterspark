@@ -109,6 +109,7 @@ export type ClientConfig = {
     EnableSVGs: string;
     EnableTesting: string;
     EnableThemeSelection: string;
+    RequireTheme: string;
     EnableTutorial: string;
     EnableOnboardingFlow: string;
     EnableUserAccessTokens: string;
@@ -676,6 +677,7 @@ export type ThemeSettings = {
     DefaultTheme: string;
     AllowCustomThemes: boolean;
     AllowedThemes: string[];
+    RequireTheme: boolean;
 };
 
 export type SSOSettings = {

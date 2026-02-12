@@ -185,7 +185,13 @@ export const getTheme: (state: GlobalState) => Theme = createShallowSelector(
     'getTheme',
     getThemePreference,
     getDefaultTheme,
-    (themePreference, defaultTheme): Theme => {
+    getConfig,
+    (themePreference, defaultTheme, config): Theme => {
+        // When RequireTheme is enabled, force all users to use the default theme
+        if (config.RequireTheme === 'true') {
+            return setThemeDefaults(defaultTheme);
+        }
+
         const themeValue: Theme | string = themePreference?.value ?? defaultTheme;
 
         // A custom theme will be a JSON-serialized object stored in a preference

@@ -130,9 +130,10 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 	props["BannerTextColor"] = ""
 	props["AllowBannerDismissal"] = "false"
 	props["EnableThemeSelection"] = "true"
-	props["DefaultTheme"] = ""
+	props["DefaultTheme"] = *c.ThemeSettings.DefaultTheme
 	props["AllowCustomThemes"] = "true"
 	props["AllowedThemes"] = ""
+	props["RequireTheme"] = strconv.FormatBool(*c.ThemeSettings.RequireTheme)
 	props["DataRetentionEnableMessageDeletion"] = "false"
 	props["DataRetentionMessageRetentionHours"] = "0"
 	props["DataRetentionEnableFileDeletion"] = "false"
@@ -217,6 +218,7 @@ func GenerateClientConfig(c *model.Config, telemetryID string, license *model.Li
 			props["DefaultTheme"] = *c.ThemeSettings.DefaultTheme
 			props["AllowCustomThemes"] = strconv.FormatBool(*c.ThemeSettings.AllowCustomThemes)
 			props["AllowedThemes"] = strings.Join(c.ThemeSettings.AllowedThemes, ",")
+			props["RequireTheme"] = strconv.FormatBool(*c.ThemeSettings.RequireTheme)
 		}
 
 		if *license.Features.DataRetention {
