@@ -166,7 +166,11 @@ func (a *App) CreateBot(rctx request.CTX, bot *model.Bot) (*model.Bot, *model.Ap
 }
 
 func (a *App) GetSystemBot(rctx request.CTX) (*model.Bot, *model.AppError) {
-	return a.GetOrCreateSystemOwnedBot(rctx, model.BotSystemBotUsername, i18n.T("app.system.system_bot.bot_displayname"))
+	displayName := i18n.T("app.system.system_bot.bot_displayname")
+	if name := *a.Config().ServiceSettings.SystemMessageDisplayName; name != "" {
+		displayName = name
+	}
+	return a.GetOrCreateSystemOwnedBot(rctx, model.BotSystemBotUsername, displayName)
 }
 
 func (a *App) GetOrCreateSystemOwnedBot(rctx request.CTX, botUsername, botDisplayName string) (*model.Bot, *model.AppError) {

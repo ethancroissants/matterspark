@@ -2324,6 +2324,22 @@ const AdminDefinition: AdminDefinitionType = {
                         },
                         {
                             type: 'text',
+                            key: 'ServiceSettings.SystemMessageDisplayName',
+                            label: defineMessage({id: 'admin.customization.systemMessageDisplayNameTitle', defaultMessage: 'System Sender Name:'}),
+                            help_text: defineMessage({id: 'admin.customization.systemMessageDisplayNameDescription', defaultMessage: 'The name shown as the author of automated system messages (e.g. join/leave notices). When blank, defaults to "System".'}),
+                            placeholder: defineMessage({id: 'admin.customization.systemMessageDisplayNameExample', defaultMessage: 'E.g.: "System"'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        },
+                        {
+                            type: 'text',
+                            key: 'ServiceSettings.SystemMessageAvatarUrl',
+                            label: defineMessage({id: 'admin.customization.systemMessageAvatarUrlTitle', defaultMessage: 'System Sender Avatar URL:'}),
+                            help_text: defineMessage({id: 'admin.customization.systemMessageAvatarUrlDescription', defaultMessage: 'URL of an image to use as the avatar for automated system messages. When blank, the Mattermost logo is used.'}),
+                            placeholder: defineMessage({id: 'admin.customization.systemMessageAvatarUrlExample', defaultMessage: 'E.g.: "https://example.com/system-avatar.png"'}),
+                            isDisabled: it.not(it.userHasWritePermissionOnResource(RESOURCE_KEYS.SITE.CUSTOMIZATION)),
+                        },
+                        {
+                            type: 'text',
                             key: 'TeamSettings.CustomDescriptionText',
                             label: defineMessage({id: 'admin.team.brandDescriptionTitle', defaultMessage: 'Site Description: '}),
                             help_text: defineMessage({id: 'admin.team.brandDescriptionHelp', defaultMessage: 'Displays as a title above the login form. When not specified, the phrase "Log in" is displayed.'}),

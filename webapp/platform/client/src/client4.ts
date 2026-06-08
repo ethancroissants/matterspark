@@ -18,6 +18,7 @@ import type {
     ChannelMembership,
     ChannelModeration,
     ChannelModerationPatch,
+    ChannelPostSettings,
     ChannelStats,
     ChannelsWithTotalCount,
     ChannelUnread,
@@ -1934,6 +1935,20 @@ export default class Client4 {
         return this.doFetch<ChannelModeration[]>(
             `${this.getChannelRoute(channelId)}/moderations/patch`,
             {method: 'put', body: JSON.stringify(channelModerationsPatch)},
+        );
+    };
+
+    getChannelPostSettings = (channelId: string) => {
+        return this.doFetch<ChannelPostSettings>(
+            `${this.getChannelRoute(channelId)}/post_settings`,
+            {method: 'get'},
+        );
+    };
+
+    updateChannelPostSettings = (channelId: string, settings: ChannelPostSettings) => {
+        return this.doFetch<ChannelPostSettings>(
+            `${this.getChannelRoute(channelId)}/post_settings`,
+            {method: 'put', body: JSON.stringify(settings)},
         );
     };
 

@@ -100,6 +100,7 @@ const (
 	PostPropsAIGeneratedByUsername    = "ai_generated_by_username"
 	PostPropsExpireAt                 = "expire_at"
 	PostPropsReadDurationSeconds      = "read_duration"
+	PostPropsLockedThread             = "locked_thread"
 
 	PostPriorityUrgent = "urgent"
 
@@ -832,6 +833,19 @@ func (o *Post) propsIsValid() error {
 
 func (o *Post) IsSystemMessage() bool {
 	return len(o.Type) >= len(PostSystemMessagePrefix) && o.Type[:len(PostSystemMessagePrefix)] == PostSystemMessagePrefix
+}
+
+// IsThreadLocked reports whether replies to this (root) post have been locked via /lockthread.
+// The flag is stored in the root post's props and may be a bool or the string "true".
+func (o *Post) IsThreadLocked() bool {
+	switch v := o.GetProp(PostPropsLockedThread).(type) {
+	case bool:
+		return v
+	case string:
+		return v == "true"
+	default:
+		return false
+	}
 }
 
 // IsRemote returns true if the post originated on a remote cluster.

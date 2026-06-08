@@ -358,6 +358,8 @@ type ServiceSettings struct {
 	OutgoingIntegrationRequestsTimeout  *int64   `access:"integrations_integration_management"` // In seconds.
 	EnablePostUsernameOverride          *bool    `access:"integrations_integration_management"`
 	EnablePostIconOverride              *bool    `access:"integrations_integration_management"`
+	SystemMessageDisplayName            *string  `access:"site_customization"`
+	SystemMessageAvatarUrl              *string  `access:"site_customization"`
 	GoogleDeveloperKey                  *string  `access:"site_posts,write_restrictable,cloud_restrictable"`
 	EnableLinkPreviews                  *bool    `access:"site_posts"`
 	EnablePermalinkPreviews             *bool    `access:"site_posts"`
@@ -766,6 +768,14 @@ func (s *ServiceSettings) SetDefaults(isUpdate bool) {
 
 	if s.EnablePostIconOverride == nil {
 		s.EnablePostIconOverride = NewPointer(false)
+	}
+
+	if s.SystemMessageDisplayName == nil {
+		s.SystemMessageDisplayName = NewPointer("System")
+	}
+
+	if s.SystemMessageAvatarUrl == nil {
+		s.SystemMessageAvatarUrl = NewPointer("")
 	}
 
 	if s.WebsocketPort == nil {
@@ -2385,7 +2395,7 @@ type ThemeSettings struct {
 	DefaultTheme         *string `access:"experimental_features,site_customization"`
 	AllowCustomThemes    *bool   `access:"experimental_features,site_customization"`
 	AllowedThemes        []string
-	RequireTheme         *bool   `access:"site_customization"`
+	RequireTheme         *bool `access:"site_customization"`
 }
 
 func (s *ThemeSettings) SetDefaults() {

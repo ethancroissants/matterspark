@@ -95,6 +95,8 @@ export type ClientConfig = {
     EnableOutgoingWebhooks: string;
     EnablePostIconOverride: string;
     EnablePostUsernameOverride: string;
+    SystemMessageDisplayName: string;
+    SystemMessageAvatarUrl: string;
     EnablePreviewModeBanner: string;
     EnablePublicLink: string;
     EnableReliableWebSockets: string;
@@ -347,6 +349,8 @@ export type ServiceSettings = {
     OutgoingIntegrationRequestsTimeout: number;
     EnablePostUsernameOverride: boolean;
     EnablePostIconOverride: boolean;
+    SystemMessageDisplayName: string;
+    SystemMessageAvatarUrl: string;
     EnableLinkPreviews: boolean;
     EnablePermalinkPreviews: boolean;
     RestrictLinkPreviews: string;

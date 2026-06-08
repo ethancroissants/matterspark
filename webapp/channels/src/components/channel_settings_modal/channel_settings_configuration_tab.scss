@@ -70,6 +70,35 @@
         }
     }
 
+    .channel_post_settings_section {
+        display: flex;
+        flex-direction: column;
+        padding-top: 16px;
+        border-top: 1px solid rgba(var(--center-channel-color-rgb), 0.08);
+        gap: 16px;
+    }
+
+    .channel_post_settings_body {
+        @include animations.fade-in;
+
+        display: flex;
+        width: 100%;
+        flex-direction: column;
+        gap: 16px;
+
+        input.form-control {
+            width: 390px;
+        }
+
+        .post_settings_role_option {
+            display: flex;
+            align-items: center;
+            margin: 0 0 4px;
+            gap: 8px;
+            font-weight: 400;
+        }
+    }
+
     .setting_section {
         display: flex;
         flex-direction: row;

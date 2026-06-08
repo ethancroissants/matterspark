@@ -751,6 +751,33 @@ func (a *App) UpdateChannel(rctx request.CTX, channel *model.Channel) (*model.Ch
 	return channel, nil
 }
 
+// GetChannelPostSettings returns the per-channel post restriction settings, or an empty (non-nil)
+// settings object when none have been configured.
+func (a *App) GetChannelPostSettings(rctx request.CTX, channelID string) (*model.ChannelPostSettings, *model.AppError) {
+	channel, appErr := a.GetChannel(rctx, channelID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	if channel.PostSettings == nil {
+		return &model.ChannelPostSettings{}, nil
+	}
+	return channel.PostSettings, nil
+}
+
+// UpdateChannelPostSettings persists the per-channel post restriction settings and returns the
+// updated channel.
+func (a *App) UpdateChannelPostSettings(rctx request.CTX, channelID string, settings *model.ChannelPostSettings) (*model.Channel, *model.AppError) {
+	channel, appErr := a.GetChannel(rctx, channelID)
+	if appErr != nil {
+		return nil, appErr
+	}
+
+	channel.PostSettings = settings
+
+	return a.UpdateChannel(rctx, channel)
+}
+
 // CreateChannelScheme creates a new Scheme of scope channel and assigns it to the channel.
 func (a *App) CreateChannelScheme(rctx request.CTX, channel *model.Channel) (*model.Scheme, *model.AppError) {
 	scheme, err := a.CreateScheme(&model.Scheme{

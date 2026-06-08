@@ -76,33 +76,118 @@ func (c ChannelBannerInfo) Value() (driver.Value, error) {
 	return string(j), nil
 }
 
+// ChannelPostSettings holds per-channel restrictions on who may create posts. It is persisted as a
+// single JSONB column on the channels table (see the BannerInfo precedent).
+type ChannelPostSettings struct {
+	// RestrictRootPosts, when true, limits who may create new root posts in the channel to the
+	// users in AllowedRootPostUserIds or anyone holding one of AllowedRootPostRoles.
+	RestrictRootPosts *bool `json:"restrict_root_posts"`
+
+	// AllowedRootPostUserIds is the set of user IDs explicitly allowed to create root posts.
+	AllowedRootPostUserIds StringArray `json:"allowed_root_post_user_ids"`
+
+	// AllowedRootPostRoles is the set of role names whose holders may create root posts.
+	AllowedRootPostRoles StringArray `json:"allowed_root_post_roles"`
+
+	// LockAllThreads, when true, blocks all replies in the channel regardless of the root-post
+	// restriction (admins always bypass).
+	LockAllThreads *bool `json:"lock_all_threads"`
+}
+
+func (c *ChannelPostSettings) Scan(value any) error {
+	if value == nil {
+		return nil
+	}
+
+	b, ok := value.([]byte)
+	if !ok {
+		return fmt.Errorf("expected []byte, got %T", value)
+	}
+
+	return json.Unmarshal(b, c)
+}
+
+func (c ChannelPostSettings) isEmpty() bool {
+	return c.RestrictRootPosts == nil &&
+		c.LockAllThreads == nil &&
+		len(c.AllowedRootPostUserIds) == 0 &&
+		len(c.AllowedRootPostRoles) == 0
+}
+
+func (c ChannelPostSettings) Value() (driver.Value, error) {
+	if c.isEmpty() {
+		return nil, nil
+	}
+
+	j, err := json.Marshal(c)
+	if err != nil {
+		return nil, err
+	}
+	return string(j), nil
+}
+
+// RootPostsRestricted reports whether root-post creation is restricted in the channel.
+func (c *ChannelPostSettings) RootPostsRestricted() bool {
+	return c != nil && c.RestrictRootPosts != nil && *c.RestrictRootPosts
+}
+
+// ThreadsLocked reports whether all replies in the channel are locked.
+func (c *ChannelPostSettings) ThreadsLocked() bool {
+	return c != nil && c.LockAllThreads != nil && *c.LockAllThreads
+}
+
+// IsUserAllowedToPostRoot reports whether a user with the given channel roles may create a root
+// post given these settings. A nil receiver or unrestricted channel always allows posting.
+func (c *ChannelPostSettings) IsUserAllowedToPostRoot(userID string, roles []string) bool {
+	if !c.RootPostsRestricted() {
+		return true
+	}
+
+	for _, id := range c.AllowedRootPostUserIds {
+		if id == userID {
+			return true
+		}
+	}
+
+	for _, role := range roles {
+		for _, allowed := range c.AllowedRootPostRoles {
+			if role == allowed {
+				return true
+			}
+		}
+	}
+
+	return false
+}
+
 type Channel struct {
-	Id                  string             `json:"id"`
-	CreateAt            int64              `json:"create_at"`
-	UpdateAt            int64              `json:"update_at"`
-	DeleteAt            int64              `json:"delete_at"`
-	TeamId              string             `json:"team_id"`
-	Type                ChannelType        `json:"type"`
-	DisplayName         string             `json:"display_name"`
-	Name                string             `json:"name"`
-	Header              string             `json:"header"`
-	Purpose             string             `json:"purpose"`
-	LastPostAt          int64              `json:"last_post_at"`
-	TotalMsgCount       int64              `json:"total_msg_count"`
-	ExtraUpdateAt       int64              `json:"extra_update_at"`
-	CreatorId           string             `json:"creator_id"`
-	SchemeId            *string            `json:"scheme_id"`
-	Props               map[string]any     `json:"props"`
-	GroupConstrained    *bool              `json:"group_constrained"`
-	AutoTranslation     bool               `json:"autotranslation"`
-	Shared              *bool              `json:"shared"`
-	TotalMsgCountRoot   int64              `json:"total_msg_count_root"`
-	PolicyID            *string            `json:"policy_id"`
-	LastRootPostAt      int64              `json:"last_root_post_at"`
-	BannerInfo          *ChannelBannerInfo `json:"banner_info"`
-	PolicyEnforced      bool               `json:"policy_enforced"`
-	PolicyIsActive      bool               `json:"policy_is_active"`
-	DefaultCategoryName string             `json:"default_category_name"`
+	Id                  string               `json:"id"`
+	CreateAt            int64                `json:"create_at"`
+	UpdateAt            int64                `json:"update_at"`
+	DeleteAt            int64                `json:"delete_at"`
+	TeamId              string               `json:"team_id"`
+	Type                ChannelType          `json:"type"`
+	DisplayName         string               `json:"display_name"`
+	Name                string               `json:"name"`
+	Header              string               `json:"header"`
+	Purpose             string               `json:"purpose"`
+	LastPostAt          int64                `json:"last_post_at"`
+	TotalMsgCount       int64                `json:"total_msg_count"`
+	ExtraUpdateAt       int64                `json:"extra_update_at"`
+	CreatorId           string               `json:"creator_id"`
+	SchemeId            *string              `json:"scheme_id"`
+	Props               map[string]any       `json:"props"`
+	GroupConstrained    *bool                `json:"group_constrained"`
+	AutoTranslation     bool                 `json:"autotranslation"`
+	Shared              *bool                `json:"shared"`
+	TotalMsgCountRoot   int64                `json:"total_msg_count_root"`
+	PolicyID            *string              `json:"policy_id"`
+	LastRootPostAt      int64                `json:"last_root_post_at"`
+	BannerInfo          *ChannelBannerInfo   `json:"banner_info"`
+	PostSettings        *ChannelPostSettings `json:"post_settings"`
+	PolicyEnforced      bool                 `json:"policy_enforced"`
+	PolicyIsActive      bool                 `json:"policy_is_active"`
+	DefaultCategoryName string               `json:"default_category_name"`
 }
 
 func (o *Channel) Auditable() map[string]any {

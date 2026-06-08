@@ -82,6 +82,9 @@ func (api *API) InitChannel() {
 
 	api.BaseRoutes.ChannelModerations.Handle("", api.APISessionRequired(getChannelModerations)).Methods(http.MethodGet)
 	api.BaseRoutes.ChannelModerations.Handle("/patch", api.APISessionRequired(patchChannelModerations)).Methods(http.MethodPut)
+
+	api.BaseRoutes.ChannelPostSettings.Handle("", api.APISessionRequired(getChannelPostSettings)).Methods(http.MethodGet)
+	api.BaseRoutes.ChannelPostSettings.Handle("", api.APISessionRequired(updateChannelPostSettings)).Methods(http.MethodPut)
 }
 
 func createChannel(c *Context, w http.ResponseWriter, r *http.Request) {
@@ -2465,6 +2468,86 @@ func patchChannelModerations(c *Context, w http.ResponseWriter, r *http.Request)
 
 	auditRec.Success()
 	if _, err := w.Write(b); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func getChannelPostSettings(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	// Any member of the channel may read the post settings (the client needs them to decide whether
+	// to disable the composer), but a session must at least be able to read the channel.
+	if _, hasPermission := c.App.HasPermissionToReadChannel(c.AppContext, c.AppContext.Session().UserId, channel); !hasPermission {
+		c.SetPermissionError(model.PermissionReadChannelContent)
+		return
+	}
+
+	settings := channel.PostSettings
+	if settings == nil {
+		settings = &model.ChannelPostSettings{}
+	}
+
+	if err := json.NewEncoder(w).Encode(settings); err != nil {
+		c.Logger.Warn("Error while writing response", mlog.Err(err))
+	}
+}
+
+func updateChannelPostSettings(c *Context, w http.ResponseWriter, r *http.Request) {
+	c.RequireChannelId()
+	if c.Err != nil {
+		return
+	}
+
+	auditRec := c.MakeAuditRecord(model.AuditEventUpdateChannelPostSettings, model.AuditStatusFail)
+	defer c.LogAuditRec(auditRec)
+
+	channel, appErr := c.App.GetChannel(c.AppContext, c.Params.ChannelId)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+	model.AddEventParameterAuditableToAuditRec(auditRec, "channel", channel)
+
+	// Post settings only apply to team channels; reject DMs/GMs which have no team and no admins.
+	if channel.TeamId == "" {
+		c.Err = model.NewAppError("updateChannelPostSettings", "api.channel.post_settings.direct_channel.app_error", nil, "", http.StatusBadRequest)
+		return
+	}
+
+	// Only team admins or higher may edit post settings.
+	if !c.App.SessionHasPermissionToTeam(*c.AppContext.Session(), channel.TeamId, model.PermissionManageTeam) {
+		c.SetPermissionError(model.PermissionManageTeam)
+		return
+	}
+
+	var settings model.ChannelPostSettings
+	if jsonErr := json.NewDecoder(r.Body).Decode(&settings); jsonErr != nil {
+		c.SetInvalidParamWithErr("post_settings", jsonErr)
+		return
+	}
+
+	updated, appErr := c.App.UpdateChannelPostSettings(c.AppContext, c.Params.ChannelId, &settings)
+	if appErr != nil {
+		c.Err = appErr
+		return
+	}
+
+	auditRec.Success()
+
+	result := updated.PostSettings
+	if result == nil {
+		result = &model.ChannelPostSettings{}
+	}
+	if err := json.NewEncoder(w).Encode(result); err != nil {
 		c.Logger.Warn("Error while writing response", mlog.Err(err))
 	}
 }

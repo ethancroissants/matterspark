@@ -49,6 +49,7 @@ export default function AboutBuildModal(props: Props) {
     const intl = useIntl();
     const [show, setShow] = useState(true);
     const [loadMetric, setLoadMetric] = useState<number | null>(0);
+    const [brandImageError, setBrandImageError] = useState(false);
 
     useEffect(() => {
         const fetchLoadMetric = async () => {
@@ -301,6 +302,36 @@ export default function AboutBuildModal(props: Props) {
         );
     }
 
+    // Matterspark branding: always show the Sparkden edition title and fork description regardless of
+    // build edition or license.
+    title = (
+        <FormattedMessage
+            id='about.sparkdenEdition'
+            defaultMessage='- Sparkden Edition'
+        />
+    );
+
+    subTitle = (
+        <FormattedMessage
+            id='about.sparkdenSubtitle'
+            defaultMessage='A private, custom fork of Mattermost, independently maintained for the Sparkden teen tech community. Not affiliated with or endorsed by Mattermost, Inc.'
+        />
+    );
+
+    // Use the workspace's custom brand image (System Console → Customization) when configured,
+    // otherwise fall back to the Mattermost logo.
+    const enableCustomBrand = config.EnableCustomBrand === 'true';
+    const logoElement = enableCustomBrand && !brandImageError ? (
+        <img
+            className='about-modal__brand-image'
+            alt='workspace logo'
+            src={Client4.getBrandImageUrl('0')}
+            onError={() => setBrandImageError(true)}
+        />
+    ) : (
+        <MattermostLogo/>
+    );
+
     return (
         <Modal
             dialogClassName='a11y__modal about-modal'
@@ -327,7 +358,7 @@ export default function AboutBuildModal(props: Props) {
             <Modal.Body>
                 <div className='about-modal__content'>
                     <div className='about-modal__logo'>
-                        <MattermostLogo/>
+                        {logoElement}
                     </div>
                     <div>
                         <h3 className='about-modal__title'>

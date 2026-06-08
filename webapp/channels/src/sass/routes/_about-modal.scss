@@ -117,6 +117,12 @@
                 height: 125px;
             }
 
+            .about-modal__brand-image {
+                width: 125px;
+                height: 125px;
+                object-fit: contain;
+            }
+
             path {
                 fill: inherit;
             }

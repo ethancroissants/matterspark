@@ -46,6 +46,13 @@ export function channelBannerEnabled(banner: ChannelBanner | undefined): boolean
     return Boolean(banner.enabled) && Boolean(banner.text) && Boolean(banner.background_color);
 }
 
+export type ChannelPostSettings = {
+    restrict_root_posts?: boolean;
+    allowed_root_post_user_ids?: string[];
+    allowed_root_post_roles?: string[];
+    lock_all_threads?: boolean;
+}
+
 export type Channel = {
     id: string;
     create_at: number;
@@ -68,6 +75,7 @@ export type Channel = {
     props?: Record<string, any>;
     policy_id?: string | null;
     banner_info?: ChannelBanner;
+    post_settings?: ChannelPostSettings;
     policy_enforced?: boolean;
     policy_is_active?: boolean;
     default_category_name?: string;

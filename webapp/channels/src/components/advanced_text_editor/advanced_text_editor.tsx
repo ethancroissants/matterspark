@@ -11,9 +11,10 @@ import type {SchedulingInfo} from '@mattermost/types/schedule_post';
 
 import {savePreferences} from 'mattermost-redux/actions/preferences';
 import {Permissions} from 'mattermost-redux/constants';
-import {getChannel, makeGetChannel, getDirectChannel} from 'mattermost-redux/selectors/entities/channels';
+import {getChannel, makeGetChannel, getDirectChannel, getMyChannelMember} from 'mattermost-redux/selectors/entities/channels';
 import {getConfig, getFeatureFlagValue} from 'mattermost-redux/selectors/entities/general';
 import {get, getBool, getInt} from 'mattermost-redux/selectors/entities/preferences';
+import {getPost} from 'mattermost-redux/selectors/entities/posts';
 import {haveIChannelPermission} from 'mattermost-redux/selectors/entities/roles';
 import {getCurrentUserId, isCurrentUserGuestUser, getStatusForUserId, makeGetDisplayName} from 'mattermost-redux/selectors/entities/users';
 
@@ -56,6 +57,7 @@ import Constants, {
     ModalIdentifiers,
     AdvancedTextEditorTextboxIds,
 } from 'utils/constants';
+import {canUserPostRoot, canUserReplyInThread} from 'utils/channel_post_settings';
 import {canUploadFiles as canUploadFilesAccordingToConfig} from 'utils/file_utils';
 import type {ApplyMarkdownOptions} from 'utils/markdown/apply_markdown';
 import {applyMarkdown as applyMarkdownUtil} from 'utils/markdown/apply_markdown';
@@ -187,6 +189,23 @@ const AdvancedTextEditor = ({
         const channel = getChannel(state, channelId);
         return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.CREATE_POST) : false;
     });
+
+    // Per-channel post settings: restrict who may create root posts, and lock replies. Channel/team/
+    // system admins (manage_channel_roles) always bypass.
+    const postingRestricted = useSelector((state: GlobalState) => {
+        const channel = getChannel(state, channelId);
+        if (!channel) {
+            return false;
+        }
+        const isAdmin = haveIChannelPermission(state, channel.team_id, channel.id, Permissions.MANAGE_CHANNEL_ROLES);
+        if (rootId) {
+            const rootPost = getPost(state, rootId);
+            return !canUserReplyInThread(channel, rootPost, isAdmin);
+        }
+        const member = getMyChannelMember(state, channelId);
+        const roles = member?.roles ? member.roles.split(' ') : [];
+        return !canUserPostRoot(channel, currentUserId, roles, isAdmin);
+    });
     const useChannelMentions = useSelector((state: GlobalState) => {
         const channel = getChannel(state, channelId);
         return channel ? haveIChannelPermission(state, channel.team_id, channel.id, Permissions.USE_CHANNEL_MENTIONS) : false;
@@ -226,7 +245,7 @@ const AdvancedTextEditor = ({
     const [renderScrollbar, setRenderScrollbar] = useState(false);
     const [keepEditorInFocus, setKeepEditorInFocus] = useState(false);
 
-    const readOnlyChannel = !canPost;
+    const readOnlyChannel = !canPost || postingRestricted;
     const hasDraftMessage = Boolean(draft.message);
     const showFormattingBar = !isFormattingBarHidden && !readOnlyChannel;
     const enableSharedChannelsDMs = useSelector((state: GlobalState) => getFeatureFlagValue(state, 'EnableSharedChannelsDMs') === 'true');
@@ -638,6 +657,20 @@ const AdvancedTextEditor = ({
                 defaultMessage: 'Write to {channelDisplayName}',
             },
             {channelDisplayName},
+        );
+    } else if (postingRestricted && rootId) {
+        createMessage = formatMessage(
+            {
+                id: 'create_post.thread_locked',
+                defaultMessage: 'This thread is locked. New replies are not allowed.',
+            },
+        );
+    } else if (postingRestricted) {
+        createMessage = formatMessage(
+            {
+                id: 'create_post.restricted',
+                defaultMessage: 'Only specific members can post in this channel.',
+            },
         );
     } else if (readOnlyChannel) {
         createMessage = formatMessage(

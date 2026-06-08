@@ -4,9 +4,11 @@
 import React from 'react';
 import type {ReactNode} from 'react';
 import {FormattedMessage, useIntl} from 'react-intl';
+import {useSelector} from 'react-redux';
 
 import type {Post} from '@mattermost/types/posts';
 
+import {getConfig} from 'mattermost-redux/selectors/entities/general';
 import {ensureString} from 'mattermost-redux/utils/post_utils';
 
 import AiGeneratedIndicator from 'components/post_view/ai_generated_indicator/ai_generated_indicator';
@@ -31,6 +33,7 @@ type Props = {
 
 const PostUserProfile = (props: Props): JSX.Element | null => {
     const intl = useIntl();
+    const config = useSelector(getConfig);
     const {post, compactDisplay, isMobileView, isConsecutivePost, enablePostUsernameOverride, isBot, isSystemMessage, colorizeUsernames, location} = props;
     const isFromAutoResponder = fromAutoResponder(post);
     const colorize = compactDisplay && colorizeUsernames;
@@ -142,12 +145,13 @@ const PostUserProfile = (props: Props): JSX.Element | null => {
                 />
             );
         } else if (isSystemMessage) {
+            const systemName = config.SystemMessageDisplayName || intl.formatMessage({
+                id: 'post_info.system',
+                defaultMessage: 'System',
+            });
             userProfile = (
                 <UserProfile
-                    overwriteName={intl.formatMessage({
-                        id: 'post_info.system',
-                        defaultMessage: 'System',
-                    })}
+                    overwriteName={systemName}
                     userId={post.user_id}
                     disablePopover={true}
                     channelId={post.channel_id}

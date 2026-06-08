@@ -25,6 +25,7 @@ type Props = {
     user: UserProfile;
     isBot?: boolean;
     overwriteIcon?: string;
+    systemMessageAvatarUrl?: string;
 }
 
 export default class PostProfilePicture extends React.PureComponent<Props> {
@@ -86,6 +87,17 @@ export default class PostProfilePicture extends React.PureComponent<Props> {
         const fromWebhook = PostUtils.isFromWebhook(post);
 
         if (isSystemMessage && !compactDisplay && !fromWebhook && !isBot) {
+            if (this.props.systemMessageAvatarUrl) {
+                return (
+                    <span className='profile-icon'>
+                        <img
+                            className='icon'
+                            src={this.props.systemMessageAvatarUrl}
+                            alt=''
+                        />
+                    </span>
+                );
+            }
             return <MattermostLogo className='icon'/>;
         }
         const fromAutoResponder = PostUtils.fromAutoResponder(post);

@@ -76,6 +76,7 @@ const (
 	AuditEventMoveChannel                        = "moveChannel"                        // move channel to different team
 	AuditEventPatchChannel                       = "patchChannel"                       // update channel properties
 	AuditEventPatchChannelModerations            = "patchChannelModerations"            // update channel moderation settings
+	AuditEventUpdateChannelPostSettings          = "updateChannelPostSettings"          // update channel post restriction settings
 	AuditEventRemoveChannelMember                = "removeChannelMember"                // remove member from channel
 	AuditEventRestoreChannel                     = "restoreChannel"                     // restore previously deleted channel
 	AuditEventUpdateChannel                      = "updateChannel"                      // update channel properties

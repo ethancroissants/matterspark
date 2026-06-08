@@ -37,6 +37,7 @@ function mapStateToProps(state: GlobalState, ownProps: Props) {
         availabilityStatusOnPosts,
         enablePostIconOverride: config.EnablePostIconOverride === 'true',
         overwriteIcon,
+        systemMessageAvatarUrl: config.SystemMessageAvatarUrl || '',
         hasImageProxy: config.HasImageProxy === 'true',
         status: getStatusForUserId(state, ownProps.userId),
         isBot: Boolean(user && user.is_bot),

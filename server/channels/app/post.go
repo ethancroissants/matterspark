@@ -160,6 +160,57 @@ func (a *App) deduplicateCreatePost(rctx request.CTX, post *model.Post) (foundPo
 	return actualPost, nil
 }
 
+// checkChannelPostingAllowed enforces per-channel post restrictions and thread locking. Root posts
+// may be restricted to specific members/roles; replies are open by default but can be blocked when
+// the whole channel has "lock all threads" enabled or the specific thread has been locked via
+// /lockthread. System messages, bots, webhook posts, and channel/team/system admins always bypass.
+func (a *App) checkChannelPostingAllowed(rctx request.CTX, user *model.User, channel *model.Channel, post *model.Post, parentPostList *model.PostList) *model.AppError {
+	// Only genuine human posts are subject to these restrictions.
+	if post.IsSystemMessage() || user.IsBot || post.GetProp(model.PostPropsFromWebhook) == "true" {
+		return nil
+	}
+
+	settings := channel.PostSettings
+	isReply := post.RootId != ""
+
+	threadLocked := false
+	if isReply && parentPostList != nil {
+		if rootPost := parentPostList.Posts[post.RootId]; rootPost != nil {
+			threadLocked = rootPost.IsThreadLocked()
+		}
+	}
+
+	// Fast path: nothing restricts this post.
+	if isReply {
+		if !settings.ThreadsLocked() && !threadLocked {
+			return nil
+		}
+	} else if !settings.RootPostsRestricted() {
+		return nil
+	}
+
+	// Channel/team/system admins always bypass.
+	if hasPermission, _ := a.HasPermissionToChannel(rctx, user.Id, channel.Id, model.PermissionManageChannelRoles); hasPermission {
+		return nil
+	}
+
+	if isReply {
+		// A reply is blocked only when the whole channel is locked or this thread is locked.
+		return model.NewAppError("CreatePost", "api.post.create_post.thread_locked.app_error", nil, "", http.StatusForbidden)
+	}
+
+	// Root-post restriction: allow only explicitly listed users or holders of an allowed role.
+	var roles []string
+	if member, err := a.GetChannelMember(rctx, channel.Id, user.Id); err == nil {
+		roles = member.GetRoles()
+	}
+	if settings.IsUserAllowedToPostRoot(user.Id, roles) {
+		return nil
+	}
+
+	return model.NewAppError("CreatePost", "api.post.create_post.root_restricted.app_error", nil, "", http.StatusForbidden)
+}
+
 func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Channel, flags model.CreatePostFlags) (savedPost *model.Post, isMemberForPreviews bool, err *model.AppError) {
 	if !a.Config().FeatureFlags.EnableSharedChannelsDMs && channel.IsShared() && (channel.Type == model.ChannelTypeDirect || channel.Type == model.ChannelTypeGroup) {
 		return nil, false, model.NewAppError("CreatePost", "app.post.create_post.shared_dm_or_gm.app_error", nil, "", http.StatusBadRequest)
@@ -287,6 +338,10 @@ func (a *App) CreatePost(rctx request.CTX, post *model.Post, channel *model.Chan
 		if rootPost.Type == model.PostTypeBurnOnRead {
 			return nil, false, model.NewAppError("createPost", "api.post.create_post.burn_on_read.app_error", nil, "", http.StatusBadRequest)
 		}
+	}
+
+	if appErr := a.checkChannelPostingAllowed(rctx, user, channel, post, parentPostList); appErr != nil {
+		return nil, false, appErr
 	}
 
 	post.Hashtags, _ = model.ParseHashtags(post.Message)
@@ -952,6 +1007,36 @@ func (a *App) UpdatePost(rctx request.CTX, receivedUpdatedPost *model.Post, upda
 	rpost = sanitizedPost
 
 	return rpost, isMemberForPreviews, nil
+}
+
+// SetThreadLocked toggles the locked flag on a thread's root post and broadcasts the change so
+// clients disable the reply box. Unlike UpdatePost it does not record an edit, mark the post as
+// "(edited)", or enforce the post-edit time limit — it is a silent moderation action.
+func (a *App) SetThreadLocked(rctx request.CTX, rootPost *model.Post, locked bool) (*model.Post, *model.AppError) {
+	oldPost := rootPost.Clone()
+	newPost := rootPost.Clone()
+	if locked {
+		newPost.AddProp(model.PostPropsLockedThread, true)
+	} else {
+		newPost.DelProp(model.PostPropsLockedThread)
+	}
+
+	rpost, nErr := a.Srv().Store().Post().Update(rctx, newPost, oldPost)
+	if nErr != nil {
+		return nil, model.NewAppError("SetThreadLocked", "app.post.update.app_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+	}
+
+	a.invalidateCacheForChannelPosts(rpost.ChannelId)
+
+	rpost = a.PreparePostForClientWithEmbedsAndImages(rctx, rpost, &model.PreparePostForClientOpts{IsEditPost: true})
+	rpost.IsFollowing = nil
+
+	message := model.NewWebSocketEvent(model.WebsocketEventPostEdited, "", rpost.ChannelId, "", nil, "")
+	if appErr := a.publishWebsocketEventForPost(rctx, rpost, message); appErr != nil {
+		return nil, appErr
+	}
+
+	return rpost, nil
 }
 
 func (a *App) publishWebsocketEventForPost(rctx request.CTX, post *model.Post, message *model.WebSocketEvent) *model.AppError {

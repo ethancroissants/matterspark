@@ -484,6 +484,10 @@
     "translation": "Failed to post channel privacy update message."
   },
   {
+    "id": "api.channel.post_settings.direct_channel.app_error",
+    "translation": "Post settings are not available for direct or group message channels."
+  },
+  {
     "id": "api.channel.post_update_channel_autotranslation_message.create_post.error",
     "translation": "Failed to post Auto-translation update message."
   },
@@ -1216,6 +1220,42 @@
   {
     "id": "api.command_leave.name",
     "translation": "leave"
+  },
+  {
+    "id": "api.command_lockthread.desc",
+    "translation": "Lock or unlock the current thread to prevent new replies"
+  },
+  {
+    "id": "api.command_lockthread.hint",
+    "translation": ""
+  },
+  {
+    "id": "api.command_lockthread.locked.success",
+    "translation": "This thread is now locked. Members can no longer reply."
+  },
+  {
+    "id": "api.command_lockthread.name",
+    "translation": "lockthread"
+  },
+  {
+    "id": "api.command_lockthread.not_in_thread.app_error",
+    "translation": "Run /lockthread from inside a thread to lock it."
+  },
+  {
+    "id": "api.command_lockthread.permission.app_error",
+    "translation": "You don't have permission to lock threads in this channel."
+  },
+  {
+    "id": "api.command_lockthread.root_post.app_error",
+    "translation": "Unable to find the thread to lock."
+  },
+  {
+    "id": "api.command_lockthread.unlocked.success",
+    "translation": "This thread is now unlocked. Members can reply again."
+  },
+  {
+    "id": "api.command_lockthread.update.app_error",
+    "translation": "Error updating the thread lock state."
   },
   {
     "id": "api.command_logout.desc",
@@ -2747,6 +2787,14 @@
   {
     "id": "api.post.create_post.root_id.app_error",
     "translation": "Invalid RootId parameter."
+  },
+  {
+    "id": "api.post.create_post.root_restricted.app_error",
+    "translation": "Only specific members are allowed to post in this channel."
+  },
+  {
+    "id": "api.post.create_post.thread_locked.app_error",
+    "translation": "This thread is locked. New replies are not allowed."
   },
   {
     "id": "api.post.create_webhook_post.creating.app_error",
