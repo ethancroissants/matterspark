@@ -4537,6 +4537,43 @@ func TestSendTestMessage(t *testing.T) {
 		assert.Nil(t, result)
 		assert.NotEmpty(t, post.GetProp(model.PostPropsForceNotification))
 	})
+
+	t.Run("Should self-heal when the system bot record is missing", func(t *testing.T) {
+		bot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+
+		// simulate a missing bot record (e.g. after a migration or an import)
+		require.NoError(t, th.App.Srv().Store().Bot().PermanentDelete(bot.UserId))
+
+		post, appErr := th.App.SendTestMessage(th.Context, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, post)
+		assert.Equal(t, bot.UserId, post.UserId)
+	})
+
+	t.Run("Should self-heal when the system bot is soft-deleted", func(t *testing.T) {
+		bot, appErr := th.App.GetSystemBot(th.Context)
+		require.Nil(t, appErr)
+
+		_, appErr = th.App.UpdateBotActive(th.Context, bot.UserId, false)
+		require.Nil(t, appErr)
+
+		post, appErr := th.App.SendTestMessage(th.Context, th.BasicUser.Id)
+		require.Nil(t, appErr)
+		require.NotNil(t, post)
+		assert.Equal(t, bot.UserId, post.UserId)
+	})
+
+	t.Run("Should return a graceful error when the system bot cannot be created", func(t *testing.T) {
+		th2 := Setup(t).InitBasic(t)
+		userID := th2.BasicUser.Id
+		require.Nil(t, th2.App.PermanentDeleteAllUsers(th2.Context))
+
+		post, appErr := th2.App.SendTestMessage(th2.Context, userID)
+		require.NotNil(t, appErr)
+		require.Nil(t, post)
+		require.Equal(t, "app.notifications.send_test_message.errors.no_bot", appErr.Id)
+	})
 }
 
 func TestPopulateEditHistoryFileMetadata(t *testing.T) {

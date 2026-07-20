@@ -978,6 +978,43 @@ func TestGetSystemBot(t *testing.T) {
 		require.Equal(t, bot.Username, model.BotSystemBotUsername)
 		require.Equal(t, bot.UserId, botUser.Id)
 	})
+
+	t.Run("The bot record should be re-created if it is missing from the database", func(t *testing.T) {
+		bot, err := th.App.GetSystemBot(th.Context)
+		require.Nil(t, err)
+
+		// simulate a missing bot record (e.g. after a migration or an import)
+		require.NoError(t, th.App.Srv().Store().Bot().PermanentDelete(bot.UserId))
+		_, appErr := th.App.GetBot(th.Context, bot.UserId, true)
+		require.NotNil(t, appErr)
+
+		restoredBot, err := th.App.GetSystemBot(th.Context)
+		require.Nil(t, err)
+		require.Equal(t, bot.UserId, restoredBot.UserId)
+		require.Equal(t, model.BotSystemBotUsername, restoredBot.Username)
+	})
+
+	t.Run("The bot should be restored if it was soft-deleted", func(t *testing.T) {
+		bot, err := th.App.GetSystemBot(th.Context)
+		require.Nil(t, err)
+
+		_, err = th.App.UpdateBotActive(th.Context, bot.UserId, false)
+		require.Nil(t, err)
+
+		restoredBot, err := th.App.GetSystemBot(th.Context)
+		require.Nil(t, err)
+		require.Equal(t, bot.UserId, restoredBot.UserId)
+		require.EqualValues(t, 0, restoredBot.DeleteAt)
+	})
+
+	t.Run("The bot display name should follow the SystemMessageDisplayName setting", func(t *testing.T) {
+		th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SystemMessageDisplayName = "Friendly Robot" })
+		defer th.App.UpdateConfig(func(cfg *model.Config) { *cfg.ServiceSettings.SystemMessageDisplayName = "System" })
+
+		bot, err := th.App.GetSystemBot(th.Context)
+		require.Nil(t, err)
+		require.Equal(t, "Friendly Robot", bot.DisplayName)
+	})
 }
 
 func TestIsBotOwnedByCurrentUserOrPlugin(t *testing.T) {

@@ -3140,7 +3140,15 @@ func (a *App) CleanUpAfterPostDeletion(rctx request.CTX, post *model.Post, delet
 func (a *App) SendTestMessage(rctx request.CTX, userID string) (*model.Post, *model.AppError) {
 	bot, err := a.GetSystemBot(rctx)
 	if err != nil {
-		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_bot", nil, "", http.StatusInternalServerError).Wrap(err)
+		rctx.Logger().Warn("Failed to get or restore the system bot for the test notification", mlog.Err(err))
+		statusCode := http.StatusInternalServerError
+		if err.StatusCode == http.StatusNotFound || err.StatusCode == http.StatusBadRequest {
+			// the system bot account is missing or disabled and could not be
+			// restored automatically; surface an actionable client error
+			// instead of an opaque 500
+			statusCode = http.StatusBadRequest
+		}
+		return nil, model.NewAppError("SendTestMessage", "app.notifications.send_test_message.errors.no_bot", nil, "", statusCode).Wrap(err)
 	}
 
 	channel, err := a.GetOrCreateDirectChannel(rctx, userID, bot.UserId)

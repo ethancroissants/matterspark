@@ -257,9 +257,60 @@ func (a *App) getOrCreateBot(rctx request.CTX, botDef *model.Bot) (*model.Bot, *
 	//return the bot for this user
 	savedBot, appErr := a.GetBot(rctx, botUser.Id, false)
 	if appErr != nil {
+		if appErr.StatusCode != http.StatusNotFound {
+			return nil, appErr
+		}
+
+		// The bot user exists but its record in the Bots table is missing or
+		// soft-deleted (e.g. after a migration, an import or an account
+		// conversion). Attempt to self-heal instead of failing the request.
+		savedBot, appErr = a.restoreBot(rctx, botDef, botUser)
+		if appErr != nil {
+			return nil, appErr
+		}
+	}
+
+	if savedBot.DisplayName != botDef.DisplayName {
+		patchedBot, patchErr := a.PatchBot(rctx, savedBot.UserId, &model.BotPatch{DisplayName: &botDef.DisplayName})
+		if patchErr != nil {
+			// the stale display name is not worth failing the request over
+			rctx.Logger().Warn("Failed to sync the bot display name", mlog.String("bot_username", botDef.Username), mlog.Err(patchErr))
+		} else {
+			savedBot = patchedBot
+		}
+	}
+
+	return savedBot, nil
+}
+
+// restoreBot re-creates or restores the record in the Bots table for an
+// existing bot user whose bot entry is missing or soft-deleted, which can
+// happen after database migrations, user imports or account conversions and
+// would otherwise make the bot permanently unusable.
+func (a *App) restoreBot(rctx request.CTX, botDef *model.Bot, botUser *model.User) (*model.Bot, *model.AppError) {
+	deletedBot, appErr := a.GetBot(rctx, botUser.Id, true)
+	if appErr == nil && deletedBot != nil {
+		// The bot record exists but is soft-deleted; reactivate it along with its user.
+		rctx.Logger().Info("Restoring soft-deleted bot record", mlog.String("bot_username", botDef.Username), mlog.String("bot_user_id", botUser.Id))
+		return a.UpdateBotActive(rctx, botUser.Id, true)
+	}
+	if appErr != nil && appErr.StatusCode != http.StatusNotFound {
 		return nil, appErr
 	}
 
+	// The bot record is missing entirely; re-create it for the existing user.
+	rctx.Logger().Info("Re-creating missing bot record", mlog.String("bot_username", botDef.Username), mlog.String("bot_user_id", botUser.Id))
+	botDef.UserId = botUser.Id
+	savedBot, nErr := a.Srv().Store().Bot().Save(botDef)
+	if nErr != nil {
+		var nAppErr *model.AppError
+		switch {
+		case errors.As(nErr, &nAppErr): // in case we haven't converted to plain error.
+			return nil, nAppErr
+		default: // last fallback in case it doesn't map to an existing app error.
+			return nil, model.NewAppError("restoreBot", "app.bot.createbot.internal_error", nil, "", http.StatusInternalServerError).Wrap(nErr)
+		}
+	}
 	return savedBot, nil
 }
 

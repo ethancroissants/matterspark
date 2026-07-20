@@ -6824,7 +6824,7 @@
   },
   {
     "id": "app.notifications.send_test_message.errors.no_bot",
-    "translation": "Cannot get the system bot"
+    "translation": "Unable to send the test notification because the system bot account is missing or deactivated and could not be restored automatically. Please verify that the @system-bot account exists and is active."
   },
   {
     "id": "app.notifications.send_test_message.errors.no_channel",
